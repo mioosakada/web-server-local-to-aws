@@ -1,21 +1,39 @@
 # Web Server: From Local to AWS Deployment
 
 ## Overview
-This project demonstrates building a web server locally and deploying it to AWS.  
-  
+This project demonstrates building a web server locally and deploying it to AWS.
+
+
+## Development Environment
+- OS: Ubuntu 24.04.4 LTS  
+  　確認コマンド：
+  ```bash
+  cat /etc/os-release
+  ```
+- Web Server: Nginx
+- Database: MySQL 8.0.45  
+  　確認コマンド：
+  ```bash
+  mysql --version
+  mysql -V
+  ```
+
+
 ## Steps
 ### 1. System Update
-システムを最新かつ安全な状態にする
 ```bash
-sudo apt updaye
+sudo apt update
 sudo apt upgrade -y
+sudo apt autoremove -y
 ```
 - `apt update`
   　パッケージ一覧を更新
-- `apt upgrade -y`
+- `apt upgrade`
   　インストール済みパッケージを更新
+- `apt autoremove`
+  　不要になったパッケージを削除
 
-システムの脆弱性や不具合を防ぐため、事前にパッケージ更新を行う
+▶︎ システムの脆弱性や不具合を防ぐため、事前にパッケージを最新化してシステムを安全な状態にする
 
 
 ### 2. Web Server Setup
@@ -51,14 +69,14 @@ index index.html;
 ```bash
 sudo apt install mysql-server -y
 sudo systemctl status mysql
-sudo mysql_sequre_installation
+sudo mysql_secure_installation
 sudo mysql
 ```
 - `apt install mysql-server -y`
   　MySQLをインストール
 - `systemctl status mysql`
   　起動確認
-- `mysql_sequre_installation`
+- `mysql_secure_installation`
   　初期設定：不要なユーザーやテストDBを削除
 - `mysql`
   　SQLにログイン
