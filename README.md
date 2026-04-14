@@ -44,29 +44,43 @@ sudo apt autoremove -y
 ### 2. Web Server Setup
 ```bash
 sudo apt install nginx -y
-sudo systemctl status nginx
+sudo systemctl start nginx
 sudo systemctl enable nginx
+sudo systemctl status nginx
 sudo vi /var/www/html/index.html
 ```
 - `apt install nginx -y`
   　WebサーバーソフトのNginxをインストール
-- `systemctl status nginx`
-  　起動確認
+- `systemctl start nginx`
+  　Nginxを起動
 - `systemctl enable nginx`
   　自動起動をONにする
+- `systemctl status nginx`
+  　サービスの起動状態を確認
 - `vi /var/www/html/index.html`
   　HTMLファイルを作成・編集
   ```html
   <h1>Hello World</h1>
   ```
+動作確認：  
+ブラウザで http://IPアドレス にアクセスし、作成したHTMLが表示されることを確認する。  
+（デフォルトではポート80でHTTP通信を受け付ける）  
 
-ブラウザで http://IPアドレス にアクセスすると、Nginxは設定ファイルに従ってWebコンテンツを取得して表示する。  
-デフォルト設定では、/var/www/html 配下の index.html が指定されている。  
+Nginxのデフォルト設定では、/var/www/html 配下の index.html を表示するように指定されている。  
 Nginx設定ファイル：/etc/nginx/sites-available/default
 ```nginx
 root /var/www/html;
 index index.html;
 ```
+設定ファイル変更後に実行するコマンド：
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+- `nginx -t`
+  　設定ファイルの構文チェック
+- `systemctl reload nginx`
+　　設定変更をサービスを停止せずに反映する
 
 
 ### 3. MySQL Setup
