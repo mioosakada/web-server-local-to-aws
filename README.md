@@ -6,20 +6,25 @@ This project demonstrates building a web server locally and deploying it to AWS.
 
 ## Development Environment
 - OS: Ubuntu 24.04.4 LTS  
-  　確認コマンド：
+  Check command:
   ```bash
   cat /etc/os-release
   ```
 - Web Server: Nginx
 - Database: MySQL 8.0.45  
-  　確認コマンド：
+  Check command:
   ```bash
   mysql --version
-  mysql -V
   ```
 
 
 ## Steps
+### 0. Checking the Current User
+```bash
+whoami
+```
+▶︎ 実行中のユーザーを確認することで権限や実行環境を把握し、適切なコマンド（sudoの必要性）などを判断する
+
 ### 1. System Update
 ```bash
 sudo apt update
@@ -27,11 +32,11 @@ sudo apt upgrade -y
 sudo apt autoremove -y
 ```
 - `apt update`
-  　パッケージ一覧を更新
-- `apt upgrade`
+  　パッケージ一覧（リポジトリ情報）を更新
+- `apt upgrade -y`
   　インストール済みパッケージを更新
-- `apt autoremove`
-  　不要になったパッケージを削除
+- `apt autoremove -y`
+  　不要になった依存パッケージを削除
 
 ▶︎ システムの脆弱性や不具合を防ぐため、事前にパッケージを最新化してシステムを安全な状態にする
 
