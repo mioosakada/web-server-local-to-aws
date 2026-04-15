@@ -6,42 +6,42 @@ This project demonstrates building a web server locally and deploying it to AWS.
 
 ## Development Environment
 - OS: Ubuntu 24.04.4 LTS  
-  Check command:
+  Check Command:
   ```bash
   cat /etc/os-release
   ```
 - Web Server: Nginx
 - Database: MySQL 8.0.45  
-  Check command:
+  Check Command:
   ```bash
   mysql --version
   ```
 
 
 ## Steps
-### 0. Checking the Current User
+### 0. Check　Current User
 ```bash
 whoami
 ```
 ▶︎ 実行中のユーザーを確認することで権限や実行環境を把握し、適切なコマンド（sudoの必要性）などを判断する
 
-### 1. System Update
+### 1. Update　System
 ```bash
 sudo apt update
 sudo apt upgrade -y
 sudo apt autoremove -y
 ```
 - `apt update`
-  　パッケージ一覧（リポジトリ情報）を更新
+  　パッケージ一覧（リポジトリ情報）を更新する
 - `apt upgrade -y`
-  　インストール済みパッケージを更新
+  　インストール済みパッケージを更新する
 - `apt autoremove -y`
-  　不要になった依存パッケージを削除
+  　不要になった依存パッケージを削除する
 
 ▶︎ システムの脆弱性や不具合を防ぐため、事前にパッケージを最新化してシステムを安全な状態にする
 
 
-### 2. Web Server Setup
+### 2. Set Up Web Server
 ```bash
 sudo apt install nginx -y
 sudo systemctl start nginx
@@ -50,23 +50,23 @@ sudo systemctl status nginx
 sudo vi /var/www/html/index.html
 ```
 - `apt install nginx -y`
-  　WebサーバーソフトのNginxをインストール
+  　WebサーバーソフトのNginxをインストールする
 - `systemctl start nginx`
-  　Nginxを起動
+  　Nginxを起動する
 - `systemctl enable nginx`
-  　自動起動をONにする
+  　自動起動を有効化する
 - `systemctl status nginx`
-  　サービスの起動状態を確認
+  　サービスの起動状態を確認する
 - `vi /var/www/html/index.html`
-  　HTMLファイルを作成・編集
+  　HTMLファイルを作成する
   ```html
   <h1>Hello World</h1>
   ```
 動作確認：  
 ブラウザで http://IPアドレス にアクセスし、作成したHTMLが表示されることを確認する。  
-（デフォルトではポート80でHTTP通信を受け付ける）  
+（Nginxはポート80でHTTP通信を受け付ける）  
 
-Nginxのデフォルト設定では、/var/www/html 配下の index.html を表示するように指定されている。  
+Nginxはデフォルト設定で /var/www/html 配下の index.html を表示する。  
 Nginx設定ファイル：/etc/nginx/sites-available/default
 ```nginx
 root /var/www/html;
@@ -78,48 +78,70 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 - `nginx -t`
-  　設定ファイルの構文チェック
+  　設定ファイルの構文チェックを行う
 - `systemctl reload nginx`
-　　設定変更をサービスを停止せずに反映する
+　　サービスを停止せずに設定変更を反映する
 
 
-### 3. MySQL Setup
-#### 3.1 MySQL Installation and Login
+### 3. Set Up MySQL
+#### 3.1 Install MySQL and Login
 ```bash
 sudo apt install mysql-server -y
+sudo systemctl start mysql
+sudo systemctl enable mysql
 sudo systemctl status mysql
 sudo mysql_secure_installation
 sudo mysql
 ```
-- `apt install mysql-server -y`
-  　MySQLをインストール
-- `systemctl status mysql`
-  　起動確認
+※ apt install および systemctl (start/enable/status) の操作はNginxと同様（mysqlに読み替え）
 - `mysql_secure_installation`
-  　初期設定：不要なユーザーやテストDBを削除
+  　初期セキュリティ設定：不要なユーザーやテストDBを削除する
 - `mysql`
-  　SQLにログイン
+  　MySQLサーバーに接続する
 
-インストール直後に自動で作成される匿名ユーザーは、ユーザー名なしで誰でもログインできるためセキュリティ的に危険である。  
-テストDBは権限が緩く、他のDB情報を取得されるリスクがある。
+▶︎ インストール直後に自動で作成される匿名ユーザーは、ユーザー名なしでログインできるため不正アクセスの可能性がある。  
+▶︎ テストDBは権限が緩く、他のDB情報を取得されるリスクがある。
 
-#### 3.2 Database Setup
+#### 3.2 Set Up Database
 ```sql
 CREATE DATABASE portfolio_db;
 USE portfolio_db;
+```
+- `CREATE DATABASE <データベース名>`
+  　新しいデータベースを作成する
+- `USE <データベース名>`
+  　操作対象とするデータベースを選択する
 
+```sql
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(50),
-  email VARCHAR(100),
+  email VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+```
+- `CREATE TABLE users`
+  　ユーザー情報を管理するテーブルを作成する 
+  - `id`: ユーザーを識別するID（自動で連番を付与）
+  - `name`: ユーザー名（最大50文字）
+  - `email`: メールアドレス（最大255文字）
+  - `created_at`: 作成日時（自動でレコード作成時の時刻を設定）
 
+```sql
 INSERT INTO users (name, email)
 VALUES ('Mio Osakada', 'mioosakada@example.com');
+```
+- `INSERT INTO users (name, email)`
+  　usersテーブルのname列とemail列にデータを追加する
+- `VALUES`
+  　指定したカラムの順番に対応する値を設定する
 
+```sql
 SELECT * FROM users;
+```
+▶︎ usersテーブルの全カラムのデータを取得し、データが正しく登録されているかを確認する
 
+```sql
 CREATE TABLE posts (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT,
@@ -127,14 +149,73 @@ CREATE TABLE posts (
   content TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+```
+- `CREATE TABLE posts`
+  　ユーザーの投稿を管理するテーブルを作成する
+  - `id`: 投稿を識別するID（usersと同様）
+  - `user_id`: 投稿を作成したユーザーのID（usersテーブルのidと対応）
+  - `title`: 投稿のタイトル（最大100文字）
+  - `content`: 投稿の本文（長文のテキストを保存可能）
+  - `created_at`: 作成日時（usersと同様）
 
+```sql
 INSERT INTO posts (user_id, title, content)
 VALUES (1, 'First Post', 'This is my first post');
-
-SELECT * FROM users;
+```
+▶︎ postsテーブルにデータを追加する（INSERT および VALUES の構文はusersと同様）
+  
+```sql
 SELECT * FROM posts;
+```
+▶︎ postsテーブルのデータを確認する（usersと同様）
 
+```sql
+ALTER TABLE posts
+ADD CONSTRAINT fk_posts_user_id
+FOREIGN KEY (user_id)
+REFERENCES users(id)
+ON DELETE CASCADE;
+```
+- `ALTER TABLE posts`
+  　既存のpostsテーブルの構造を変更する
+- `ADD CONSTRAINT <制約名>`
+  　任意の名前で制約（ルール）を追加する
+- `FOREIGN KEY (user_id)`
+  　user_idカラムを外部キーとして設定する  
+  　※外部キー：他のテーブルと関連付けるためのカラム
+- `REFERENCES users(id)`
+  　usersテーブルのidを参照する  
+  　※user_idにはusers.idに存在する値しか入力できない
+- `ON DELETE CASCADE`
+  　参照される側（親：users）のデータが削除された場合、そのユーザーに紐づくposts（子）のデータも自動で削除する
+
+▶︎ 存在しないユーザーIDの投稿を作成できないようにする  
+▶︎ 親（users）データ削除後に、不整合な子（posts）データが残るのを防ぐ
+
+```sql
+ALTER TABLE users
+MODIFY name VARCHAR(50) NOT NULL,
+MODIFY email VARCHAR(255) NOT NULL UNIQUE,
+MODIFY created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+```
+▶︎ usersテーブルの既存カラム（name、email、created_at）の定義を変更し、NOT NULL制約（値なしは禁止）およびUNIQUE制約（重複禁止）を追加する
+
+```sql
+ALTER TABLE posts
+MODIFY user_id INT NOT NULL,
+MODIFY title VARCHAR(100) NOT NULL,
+MODIFY created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+```
+▶︎ postsテーブルの既存カラムにNOT NULL制約を追加する（usersと同様）  
+▶︎ 不完全なデータ登録および重複データの発生を防止し、データの整合性を保つ  
+
+※ 既存データにNULLや重複がある場合、制約追加時にエラーとなるため事前確認が必要
+
+
+##4. Get Data (JOIN)
+```sql
 SELECT users.name, posts.title
 FROM users
 JOIN posts ON users.id = posts.user_id;
 ```
+▶︎ ユーザーと投稿のデータを結合し、ユーザー名と投稿タイトルを一覧として取得する
