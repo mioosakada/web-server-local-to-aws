@@ -212,7 +212,7 @@ MODIFY created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
 ※ 既存データにNULLや重複がある場合、制約追加時にエラーとなるため事前確認が必要
 
 
-##4. Get Data (JOIN)
+## 4. Get Data (JOIN)
 ```sql
 SELECT users.name, posts.title
 FROM users
