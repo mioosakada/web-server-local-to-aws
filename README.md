@@ -95,12 +95,12 @@ sudo mysql
 ```
 ※ apt install および systemctl (start/enable/status) の操作はNginxと同様（mysqlに読み替え）
 - `mysql_secure_installation`
-  　初期セキュリティ設定：不要なユーザーやテストDBを削除する
+  　初期セキュリティ設定：不要なユーザーやテストデータベースを削除する
 - `mysql`
   　MySQLサーバーに接続する
 
 ▶︎ インストール直後に自動で作成される匿名ユーザーは、ユーザー名なしでログインできるため不正アクセスの可能性がある。  
-▶︎ テストDBは権限が緩く、他のDB情報を取得されるリスクがある。
+▶︎ テストデータベースは権限が緩く、他のDB情報を取得されるリスクがある。
 
 #### 3.2 Set Up Database
 ```sql
@@ -219,3 +219,21 @@ FROM users
 JOIN posts ON users.id = posts.user_id;
 ```
 ▶︎ ユーザーと投稿のデータを結合し、ユーザー名と投稿タイトルを一覧として取得する
+
+
+## 5. Manage Database Access
+```sql
+CREATE USER 'app_user'@'localhost' IDENTIFIED BY 'password';
+```
+▶︎ データベース接続用の専用ユーザーとパスワードを作成し、rootではなく最小権限のユーザーで接続できるようにする  
+▶︎ 接続元をlocalhostに制限し、外部からの不正アクセスを防止する
+
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON portfolio_db.*
+TO 'app_user'@'localhost';
+```
+
+```sql
+SHOW GRANTS FOR 'app_user'@'localhost';
+```
