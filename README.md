@@ -225,7 +225,7 @@ JOIN posts ON users.id = posts.user_id;
 ```sql
 CREATE USER 'app_user'@'localhost' IDENTIFIED BY 'password';
 ```
-▶︎ データベース接続用の専用ユーザーとパスワードを作成し、rootではなく最小権限のユーザーで接続できるようにする  
+▶︎ データベース接続用の専用ユーザー（app_user）とパスワードを作成し、rootではなく最小権限のユーザーで接続できるようにする  
 ▶︎ 接続元をlocalhostに制限し、外部からの不正アクセスを防止する
 
 ```sql
@@ -233,7 +233,10 @@ GRANT SELECT, INSERT, UPDATE, DELETE
 ON portfolio_db.*
 TO 'app_user'@'localhost';
 ```
+▶︎ app_userに対して、portfolio_dbデータベース内の全テーブルに対する基本的な操作権限を付与する  
+▶︎ 必要最小限の権限（参照・追加・更新・削除）のみを付与することで、誤操作や不正アクセスによる影響範囲の拡大を防ぐ
 
 ```sql
 SHOW GRANTS FOR 'app_user'@'localhost';
 ```
+▶︎ GRANTで設定した内容が正しく反映されているか、および不要な権限が付与されていないかを確認する
