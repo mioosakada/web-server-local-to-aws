@@ -240,3 +240,6 @@ TO 'app_user'@'localhost';
 SHOW GRANTS FOR 'app_user'@'localhost';
 ```
 ▶︎ GRANTで設定した内容が正しく反映されているか、および不要な権限が付与されていないかを確認する
+
+
+## 6. Set Up AWS Infrastructure
