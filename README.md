@@ -223,7 +223,7 @@ JOIN posts ON users.id = posts.user_id;
 
 ## 5. Manage Database Access
 ```sql
-CREATE USER 'app_user'@'localhost' IDENTIFIED BY 'password';
+CREATE USER 'app_user'@'localhost' IDENTIFIED BY 'Password123!';
 ```
 ▶︎ データベース接続用の専用ユーザー（app_user）とパスワードを作成し、rootではなく最小権限のユーザーで接続できるようにする  
 ▶︎ 接続元をlocalhostに制限し、外部からの不正アクセスを防止する
@@ -257,5 +257,14 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 - 権限付与
 - MFA有効化
 
-▶︎ 日常操作用として管理用のIAMユーザーを作成し、初期構築のために一時的にAdministratorAccessを付与する
-▶︎ IAMユーザーにもMFAを設定し、セキュリティを強化する
+▶︎ 日常操作用として管理用のIAMユーザーを作成し、初期構築のために一時的にAdministratorAccessを付与する  
+▶︎ IAMユーザーにもMFAを設定し、セキュリティを強化する  
+
+### 6.3 Set Up VPC and Networking
+- VPC作成
+- サブネット作成
+- 自動パブリックIP有効化
+- インターネットゲートウェイ作成
+- インターネットゲートウェイをVPCにアタッチ
+- ルートテーブル設定
+- サブネットとルートテーブル関連付け
