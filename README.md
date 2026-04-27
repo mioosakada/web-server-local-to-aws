@@ -63,10 +63,10 @@ sudo vi /var/www/html/index.html
   <h1>Hello World</h1>
   ```
 動作確認：  
-ブラウザで http://IPアドレス にアクセスし、作成したHTMLが表示されることを確認する。  
+ブラウザで http://IPアドレス にアクセスし、作成したHTMLが表示されることを確認する  
 （Nginxはポート80でHTTP通信を受け付ける）  
 
-Nginxはデフォルト設定で /var/www/html 配下の index.html を表示する。  
+Nginxはデフォルト設定で /var/www/html 配下の index.html を表示する  
 Nginx設定ファイル：/etc/nginx/sites-available/default
 ```nginx
 root /var/www/html;
@@ -99,8 +99,8 @@ sudo mysql
 - `mysql`
   　MySQLサーバーに接続する
 
-▶︎ インストール直後に自動で作成される匿名ユーザーは、ユーザー名なしでログインできるため不正アクセスの可能性がある。  
-▶︎ テストデータベースは権限が緩く、他のDB情報を取得されるリスクがある。
+▶︎ インストール直後に自動で作成される匿名ユーザーは、ユーザー名なしでログインできるため不正アクセスの可能性がある  
+▶︎ テストデータベースは権限が緩く、他のデータベース情報を取得されるリスクがある
 
 #### 3.2 Set Up Database
 ```sql
@@ -239,7 +239,23 @@ TO 'app_user'@'localhost';
 ```sql
 SHOW GRANTS FOR 'app_user'@'localhost';
 ```
-▶︎ GRANTで設定した内容が正しく反映されているか、および不要な権限が付与されていないかを確認する
+▶︎ GRANTで設定した内容が正しく反映されているか、および不要な権限が付与されていないかを確認する  
 
 
 ## 6. Set Up AWS Infrastructure
+### 6.1 Initialize AWS Environment
+- AWSアカウント作成
+- 多要素認証（MFA）有効化
+- リージョン設定
+  
+▶︎ AWSアカウント作成時に生成されるAWS rootユーザーは全権限を持つため、初期設定や緊急時のみに使用を限定する  
+▶︎ MFAにより不正ログインを防止する  
+▶︎ 東京リージョン（ap-northeast-1）を選択し、データ通信の遅延を低減する  
+
+### 6.2 Configure IAM Users with Permissions
+- IAMユーザー作成
+- 権限付与
+- MFA有効化
+
+▶︎ 日常操作用として管理用のIAMユーザーを作成し、初期構築のために一時的にAdministratorAccessを付与する
+▶︎ IAMユーザーにもMFAを設定し、セキュリティを強化する
