@@ -212,7 +212,7 @@ MODIFY created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
 ※ 既存データにNULLや重複がある場合、制約追加時にエラーとなるため事前確認が必要
 
 
-## 4. Get Data (JOIN)
+### 4. Get Data (JOIN)
 ```sql
 SELECT users.name, posts.title
 FROM users
@@ -221,7 +221,7 @@ JOIN posts ON users.id = posts.user_id;
 ▶︎ ユーザーと投稿のデータを結合し、ユーザー名と投稿タイトルを一覧として取得する
 
 
-## 5. Manage Database Access
+### 5. Manage Database Access
 ```sql
 CREATE USER 'app_user'@'localhost' IDENTIFIED BY 'Password123!';
 ```
@@ -242,8 +242,8 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 ▶︎ GRANTで設定した内容が正しく反映されているか、および不要な権限が付与されていないかを確認する  
 
 
-## 6. Set Up AWS Infrastructure
-### 6.1 Initialize AWS Environment
+### 6. Set Up AWS Infrastructure
+#### 6.1 Initialize AWS Environment
 - AWSアカウント作成
 - 多要素認証（MFA）有効化
 - リージョン設定
@@ -252,7 +252,7 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 ▶︎ MFAにより不正ログインを防止する  
 ▶︎ 東京リージョン（ap-northeast-1）を選択し、データ通信の遅延を低減する  
 
-### 6.2 Configure IAM Users with Permissions
+#### 6.2 Configure IAM Users with Permissions
 - IAMユーザー作成
 - 権限付与
 - MFA有効化
@@ -260,11 +260,26 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 ▶︎ 日常操作用として管理用のIAMユーザーを作成し、初期構築のために一時的にAdministratorAccessを付与する  
 ▶︎ IAMユーザーにもMFAを設定し、セキュリティを強化する  
 
-### 6.3 Set Up VPC and Networking
-- VPC作成
-- サブネット作成
-- 自動パブリックIP有効化
-- インターネットゲートウェイ作成
-- インターネットゲートウェイをVPCにアタッチ
-- ルートテーブル設定
-- サブネットとルートテーブル関連付け
+#### 6.3 Set Up VPC and Networking
+- VPC作成  
+  AWS上に独立したネットワーク環境を構築する
+
+- サブネット作成  
+  VPC内にサーバー（EC2）を配置するための領域を作成する
+
+- 自動パブリックIP有効化  
+  サーバーにグローバルIPを自動で割り当て、インターネットからアクセス可能にする
+
+- インターネットゲートウェイ作成  
+  VPCとインターネットを接続するための出入口を作成する
+
+- インターネットゲートウェイをVPCにアタッチ  
+  VPCにインターネット接続を有効化する
+
+- ルートテーブル設定  
+  通信の経路を定義し、インターネットへの通信をインターネットゲートウェイに送るよう設定する
+
+- サブネットとルートテーブル関連付け  
+  サブネットに適用するルートテーブルを設定する  
+
+▶︎ VPCとネットワーク設定により、インターネットと通信可能なサーバー環境を構築する
