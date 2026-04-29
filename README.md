@@ -11,12 +11,15 @@ This project demonstrates building a web server locally and deploying it to AWS.
   cat /etc/os-release
   ```
 - Web Server: Nginx
+- Language: HTML (for test page)
 - Database: MySQL 8.0.45  
   Check Command:
   ```bash
   mysql --version
   ```
-
+- Version Control: Git / GitHub
+- Cloud: AWS (IAM, VPC, EC2)
+  - Region: ap-northeast-1 (Tokyo)
 
 ## Steps
 ### 0. Check　Current User
@@ -31,12 +34,14 @@ sudo apt update
 sudo apt upgrade -y
 sudo apt autoremove -y
 ```
-- `apt update`
-  　パッケージ一覧（リポジトリ情報）を更新する
-- `apt upgrade -y`
-  　インストール済みパッケージを更新する
-- `apt autoremove -y`
-  　不要になった依存パッケージを削除する
+- `apt update`  
+  パッケージ一覧（リポジトリ情報）を更新する
+
+- `apt upgrade -y`  
+  インストール済みパッケージを更新する
+
+- `apt autoremove -y`  
+  不要になった依存パッケージを削除する
 
 ▶︎ システムの脆弱性や不具合を防ぐため、事前にパッケージを最新化してシステムを安全な状態にする
 
@@ -49,16 +54,20 @@ sudo systemctl enable nginx
 sudo systemctl status nginx
 sudo vi /var/www/html/index.html
 ```
-- `apt install nginx -y`
-  　WebサーバーソフトのNginxをインストールする
-- `systemctl start nginx`
-  　Nginxを起動する
-- `systemctl enable nginx`
-  　自動起動を有効化する
-- `systemctl status nginx`
-  　サービスの起動状態を確認する
-- `vi /var/www/html/index.html`
-  　HTMLファイルを作成する
+- `apt install nginx -y`  
+  WebサーバーソフトのNginxをインストールする
+
+- `systemctl start nginx`  
+  Nginxを起動する
+
+- `systemctl enable nginx`  
+  自動起動を有効化する
+
+- `systemctl status nginx`  
+  サービスの起動状態を確認する
+
+- `vi /var/www/html/index.html`  
+  HTMLファイルを作成する
   ```html
   <h1>Hello World</h1>
   ```
@@ -77,10 +86,11 @@ index index.html;
 sudo nginx -t
 sudo systemctl reload nginx
 ```
-- `nginx -t`
-  　設定ファイルの構文チェックを行う
-- `systemctl reload nginx`
-　　サービスを停止せずに設定変更を反映する
+- `nginx -t`  
+  設定ファイルの構文チェックを行う
+
+- `systemctl reload nginx`  
+  サービスを停止せずに設定変更を反映する
 
 
 ### 3. Set Up MySQL
@@ -94,10 +104,11 @@ sudo mysql_secure_installation
 sudo mysql
 ```
 ※ apt install および systemctl (start/enable/status) の操作はNginxと同様（mysqlに読み替え）
-- `mysql_secure_installation`
-  　初期セキュリティ設定：不要なユーザーやテストデータベースを削除する
-- `mysql`
-  　MySQLサーバーに接続する
+- `mysql_secure_installation`  
+  初期セキュリティ設定：不要なユーザーやテストデータベースを削除する
+
+- `mysql`  
+  MySQLサーバーに接続する
 
 ▶︎ インストール直後に自動で作成される匿名ユーザーは、ユーザー名なしでログインできるため不正アクセスの可能性がある  
 ▶︎ テストデータベースは権限が緩く、他のデータベース情報を取得されるリスクがある
@@ -107,10 +118,11 @@ sudo mysql
 CREATE DATABASE portfolio_db;
 USE portfolio_db;
 ```
-- `CREATE DATABASE <データベース名>`
-  　新しいデータベースを作成する
-- `USE <データベース名>`
-  　操作対象とするデータベースを選択する
+- `CREATE DATABASE <データベース名>`  
+  新しいデータベースを作成する
+
+- `USE <データベース名>`  
+  操作対象とするデータベースを選択する
 
 ```sql
 CREATE TABLE users (
@@ -120,8 +132,9 @@ CREATE TABLE users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
-- `CREATE TABLE users`
-  　ユーザー情報を管理するテーブルを作成する 
+- `CREATE TABLE users`  
+  ユーザー情報を管理するテーブルを作成する
+
   - `id`: ユーザーを識別するID（自動で連番を付与）
   - `name`: ユーザー名（最大50文字）
   - `email`: メールアドレス（最大255文字）
@@ -131,10 +144,11 @@ CREATE TABLE users (
 INSERT INTO users (name, email)
 VALUES ('Mio Osakada', 'mioosakada@example.com');
 ```
-- `INSERT INTO users (name, email)`
-  　usersテーブルのname列とemail列にデータを追加する
-- `VALUES`
-  　指定したカラムの順番に対応する値を設定する
+- `INSERT INTO users (name, email)`  
+  usersテーブルのname列とemail列にデータを追加する
+
+- `VALUES`  
+  指定したカラムの順番に対応する値を設定する
 
 ```sql
 SELECT * FROM users;
@@ -150,8 +164,9 @@ CREATE TABLE posts (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
-- `CREATE TABLE posts`
-  　ユーザーの投稿を管理するテーブルを作成する
+- `CREATE TABLE posts`  
+  ユーザーの投稿を管理するテーブルを作成する
+
   - `id`: 投稿を識別するID（usersと同様）
   - `user_id`: 投稿を作成したユーザーのID（usersテーブルのidと対応）
   - `title`: 投稿のタイトル（最大100文字）
@@ -176,18 +191,22 @@ FOREIGN KEY (user_id)
 REFERENCES users(id)
 ON DELETE CASCADE;
 ```
-- `ALTER TABLE posts`
-  　既存のpostsテーブルの構造を変更する
-- `ADD CONSTRAINT <制約名>`
-  　任意の名前で制約（ルール）を追加する
-- `FOREIGN KEY (user_id)`
-  　user_idカラムを外部キーとして設定する  
-  　※外部キー：他のテーブルと関連付けるためのカラム
-- `REFERENCES users(id)`
-  　usersテーブルのidを参照する  
-  　※user_idにはusers.idに存在する値しか入力できない
-- `ON DELETE CASCADE`
-  　参照される側（親：users）のデータが削除された場合、そのユーザーに紐づくposts（子）のデータも自動で削除する
+- `ALTER TABLE posts`  
+  既存のpostsテーブルの構造を変更する
+
+- `ADD CONSTRAINT <制約名>`  
+  任意の名前で制約（ルール）を追加する
+
+- `FOREIGN KEY (user_id)`  
+  user_idカラムを外部キーとして設定する  
+  ※ 外部キー：他のテーブルと関連付けるためのカラム
+
+- `REFERENCES users(id)`  
+  usersテーブルのidを参照する    
+  ※ user_idにはusers.idに存在する値しか入力できない
+
+- `ON DELETE CASCADE`  
+  参照される側（親：users）のデータが削除された場合、そのユーザーに紐づくposts（子）のデータも自動で削除する
 
 ▶︎ 存在しないユーザーIDの投稿を作成できないようにする  
 ▶︎ 親（users）データ削除後に、不整合な子（posts）データが残るのを防ぐ
@@ -262,13 +281,15 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 
 #### 6.3 Set Up VPC and Networking
 - VPC作成  
-  AWS上に独立したネットワーク環境を構築する
+  AWS上に独立したネットワーク環境を構築する  
+  ※ CIDRは10.0.0.0/16とし、サブネット分割や将来的な拡張に対応できる設計とする 
 
 - サブネット作成  
-  VPC内にサーバー（EC2）を配置するための領域を作成する
+  VPC内にサーバー（EC2）を配置するための領域を作成する  
+  ※ サブネットは特定のアベイラビリティゾーンに配置し、障害の影響範囲を分離できる構成とする
 
 - 自動パブリックIP有効化  
-  サーバーにパブリックIPを自動で割り当て、インターネットからアクセス可能にする
+  サーバーにパブリックIPを自動で割り当て、インターネットと通信可能な状態にする
 
 - インターネットゲートウェイ作成  
   VPCとインターネットを接続するための出入口を作成する
@@ -277,9 +298,17 @@ SHOW GRANTS FOR 'app_user'@'localhost';
   VPCにインターネット接続を有効化する
 
 - ルートテーブル設定  
-  通信の経路を定義し、インターネットへの通信をインターネットゲートウェイに送るよう設定する
+  通信の経路を定義し、インターネットへの通信をインターネットゲートウェイに送るよう設定する  
+  ※ 送信先は0.0.0.0/0とし、VPC外への全ての通信をインターネットゲートウェイ経由で行う設定とする
 
 - サブネットとルートテーブル関連付け  
   サブネットに適用するルートテーブルを設定する  
 
 ▶︎ VPCとネットワーク設定により、インターネットと通信可能なサーバー環境を構築する
+
+#### 6.4 Set Up EC2 Instance
+- EC2インスタンス作成
+- Amazon マシンイメージ（AMI）選択
+- インスタンスタイプ選択
+- キーペア作成
+- ネットワーク設定
