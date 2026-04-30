@@ -1,20 +1,20 @@
 # Web Server: From Local to AWS Deployment
 
 ## Overview
-This project demonstrates building a web server locally and deploying it to AWS.
+このプロジェクトは、ローカル環境でWebサーバーおよびデータベースを構築し、その環境をAWS上にデプロイする一連の流れを実装したものです。
 
 
 ## Development Environment
 - Host OS: macOS (MacBook)
-- Local OS: Ubuntu 24.04.4 LTS (UTM)
-  Check Command:
+- Local OS: Ubuntu 24.04.4 LTS (UTM)  
+  確認コマンド：
   ```bash
   cat /etc/os-release
   ```
 - Web Server: Nginx
 - Language: HTML (for test page)
 - Database: MySQL 8.0.45  
-  Check Command:
+  確認コマンド：
   ```bash
   mysql --version
   ```
@@ -47,7 +47,7 @@ sudo apt autoremove -y
 ▶︎ システムの脆弱性や不具合を防ぐため、事前にパッケージを最新化してシステムを安全な状態にする
 
 
-### 2. Set Up Web Server
+### 2. Set Up Local Web Server
 ```bash
 sudo apt install nginx -y
 sudo systemctl start nginx
@@ -356,4 +356,8 @@ SHOW GRANTS FOR 'app_user'@'localhost';
   ※ ローカル環境（セクション1・2）と同様の手順をEC2上で実行する  
 
 - ブラウザからアクセス確認  
-  パブリックIPを使用してEC2へアクセスできることを確認する  
+  パブリックIPアドレスにブラウザでアクセスし、Webページが表示されることを確認する  
+
+
+## Summary
+本プロジェクトを通して、Linuxサーバーの基本操作、Webサーバー構築、データベース設計、およびAWSを用いたインフラ構築の基礎を学習した。
