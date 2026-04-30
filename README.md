@@ -5,7 +5,8 @@ This project demonstrates building a web server locally and deploying it to AWS.
 
 
 ## Development Environment
-- OS: Ubuntu 24.04.4 LTS  
+- Host OS: macOS (MacBook)
+- Local OS: Ubuntu 24.04.4 LTS (UTM)
   Check Command:
   ```bash
   cat /etc/os-release
@@ -307,8 +308,52 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 ▶︎ VPCとネットワーク設定により、インターネットと通信可能なサーバー環境を構築する
 
 #### 6.4 Set Up EC2 Instance
-- EC2インスタンス作成
-- Amazon マシンイメージ（AMI）選択
-- インスタンスタイプ選択
-- キーペア作成
-- ネットワーク設定
+- EC2インスタンス作成  
+  AWS上に仮想サーバー（EC2）を起動する
+
+- Amazon マシンイメージ（AMI）選択  
+  サーバーのOSとしてUbuntuを選択する  
+  ※ ローカル環境と本番環境の差異を減らすため、同一のUbuntu 24.04 LTSを採用
+
+- インスタンスタイプ選択  
+  t3.micro（無料枠対象）を選択し、学習用の最小構成とする
+
+- キーペア作成  
+  SSH接続時に必要な公開鍵・秘密鍵のペアを作成し、安全にサーバーへ接続できるようにする  
+  ※ キーペアタイプは互換性の高いRSAを選択し、MacからSSH接続するため.pem形式を使用  
+
+- ネットワーク設定（VPC・サブネット選択）  
+  6.3で作成したVPCおよびサブネットにEC2を配置する
+
+- セキュリティグループ作成  
+  セキュリティグループルールでSSH（22番ポート）とHTTP（80番ポート）のみを許可する  
+  ※ SSHは自分のIPのみに制限し、不正アクセスを防ぐ  
+  ※ HTTPは任意の場所（0.0.0.0/0）とし、インターネット上の全てのユーザーからアクセス可能にする  
+
+- EC2インスタンス起動  
+  設定内容をもとにインスタンスを作成し、サーバーを起動する  
+
+- 秘密鍵（.pem）の権限変更
+  ```bash
+  chmod 400 web-server-key.pem
+  ```
+  - `chmod 400 <ファイル名>`  
+    ファイルの権限を「所有者のみ読み取り可」に設定する（セキュリティ対策のため）
+
+- SSH接続確認
+  ```bash
+  ssh -i web-server-key.pem ubuntu@<EC2のパブリックIPアドレス>
+  ```
+  - `ssh -i <秘密鍵のファイル名> <ユーザー名>@<パブリックIP>`  
+    指定した秘密鍵を使用してリモートサーバーにログインする  
+
+  ※ 初回接続時のみホスト確認メッセージが表示されるため「yes」を入力する  
+  
+  ▶︎ 接続に成功すると `ubuntu@ip-xxx-xxx-xxx-xxx:~$` のようなプロンプトが表示される  
+  
+- Webサーバー構築  
+  EC2上にWebサーバー（Nginx）をインストールし、外部（ブラウザ）からアクセス可能な状態にする  
+  ※ ローカル環境（セクション1・2）と同様の手順をEC2上で実行する  
+
+- ブラウザからアクセス確認  
+  パブリックIPを使用してEC2へアクセスできることを確認する  
