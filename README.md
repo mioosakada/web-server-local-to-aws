@@ -12,7 +12,7 @@
   cat /etc/os-release
   ```
 - Web Server: Nginx
-- Language: HTML (for test page)
+- Language: HTML / PHP
 - Database: MySQL 8.0.45  
   確認コマンド：
   ```bash
@@ -23,13 +23,13 @@
   - Region: ap-northeast-1 (Tokyo)
 
 ## Steps
-### 0. Check　Current User
+### 0. Check Current User
 ```bash
 whoami
 ```
 ▶︎ 実行中のユーザーを確認することで権限や実行環境を把握し、適切なコマンド（sudoの必要性）などを判断する
 
-### 1. Update　System
+### 1. Update System
 ```bash
 sudo apt update
 sudo apt upgrade -y
@@ -82,19 +82,9 @@ Nginx設定ファイル：/etc/nginx/sites-available/default
 root /var/www/html;
 index index.html;
 ```
-設定ファイル変更後に実行するコマンド：
-```bash
-sudo nginx -t
-sudo systemctl reload nginx
-```
-- `nginx -t`  
-  設定ファイルの構文チェックを行う
-
-- `systemctl reload nginx`  
-  サービスを停止せずに設定変更を反映する
 
 
-### 3. Set Up MySQL
+### 3. Set Up Local MySQL
 #### 3.1 Install MySQL and Login
 ```bash
 sudo apt install mysql-server -y
@@ -229,7 +219,7 @@ MODIFY created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
 ▶︎ postsテーブルの既存カラムにNOT NULL制約を追加する（usersと同様）  
 ▶︎ 不完全なデータ登録および重複データの発生を防止し、データの整合性を保つ  
 
-※ 既存データにNULLや重複がある場合、制約追加時にエラーとなるため事前確認が必要
+※ 既存データにNULLや重複がある場合、制約追加時にエラーとなるため事前確認が必要  
 
 
 ### 4. Get Data (JOIN)
@@ -260,6 +250,75 @@ TO 'app_user'@'localhost';
 SHOW GRANTS FOR 'app_user'@'localhost';
 ```
 ▶︎ GRANTで設定した内容が正しく反映されているか、および不要な権限が付与されていないかを確認する  
+
+
+### ?. Set Up and Run Simple PHP Application
+- アプリケーション作成  
+  /var/www/html 配下に index.php を作成し、投稿機能を持つ簡易的なPHPアプリケーションを実装する  
+  ※ 実装コードの詳細は、本リポジトリ内の index.php を参照
+
+- PHPのインストールと起動設定
+  ```bash
+  sudo apt install php-fpm php-mysql -y
+  sudo systemctl start php8.3-fpm
+  sudo systemctl enable php8.3-fpm
+  sudo systemctl status php8.3-fpm
+  ```
+  ※ `php -v`でバージョンを確認し、それに対応するphp-fpmサービスを起動する
+
+- NginxにPHP設定  
+  Nginxの設定ファイルを開き、以下のように変更する  
+  ```bash
+  sudo vi /etc/nginx/sites-available/default
+  ```
+  変更前：
+  ```nginx
+  index index.html index.htm;
+  ```
+  変更後：
+  ```nginx
+  index index.php index.html index.htm;
+  ```
+  ▶︎ index.php を優先的に読み込むように設定する  
+
+  変更前：
+  ```nginx
+  #location ~ \.php$ {
+  #        include snippets/fastcgi-php.conf;
+  #        # With php-fpm (or other unix sockets):
+  #        fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+  #        # With php-cgi (or other tcp sockets):
+  #        fastcgi_pass 127.0.0.1:9000;
+  #}
+  ```
+  変更後：
+  ```nginx
+  location ~ \.php$ {
+          include snippets/fastcgi-php.conf;
+          # With php-fpm (or other unix sockets):
+          fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+  #       # With php-cgi (or other tcp sockets):
+  #       fastcgi_pass 127.0.0.1:9000;
+  }
+  ```
+  ▶︎ PHPファイルを処理できるようにするため、location設定を有効化する（コメントアウト解除）  
+  ▶︎ 使用しているPHPバージョンに合わせてphp-fpmのソケットパスを変更する  
+
+- Nginx設定の確認と反映
+  ```bash
+  sudo nginx -t
+  sudo systemctl reload nginx
+  ```
+  - `nginx -t`  
+    設定ファイルの構文チェックを行う
+
+  - `systemctl reload nginx`  
+    サービスを停止せずに設定変更を反映する  
+
+  ▶︎ 設定ミスによる起動エラーを防ぎ、安全に設定変更を反映する  
+
+- 動作確認  
+  ブラウザで http://IPアドレス にアクセスし、作成したPHPアプリケーションが表示されることを確認  
 
 
 ### 6. Set Up AWS Infrastructure
