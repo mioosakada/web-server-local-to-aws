@@ -19,8 +19,9 @@
   mysql --version
   ```
 - Version Control: Git / GitHub
-- Cloud: AWS (IAM, VPC, EC2)
+- Cloud: AWS (IAM, VPC, EC2, RDS)
   - Region: ap-northeast-1 (Tokyo)
+
 
 ## Steps
 ### 0. Check Current User
@@ -28,6 +29,7 @@
 whoami
 ```
 ▶︎ 実行中のユーザーを確認することで権限や実行環境を把握し、適切なコマンド（sudoの必要性）などを判断する
+
 
 ### 1. Update System
 ```bash
@@ -104,6 +106,7 @@ sudo mysql
 ▶︎ インストール直後に自動で作成される匿名ユーザーは、ユーザー名なしでログインできるため不正アクセスの可能性がある  
 ▶︎ テストデータベースは権限が緩く、他のデータベース情報を取得されるリスクがある
 
+
 #### 3.2 Set Up Database
 ```sql
 CREATE DATABASE portfolio_db;
@@ -166,14 +169,36 @@ CREATE TABLE posts (
 
 ```sql
 INSERT INTO posts (user_id, title, content)
-VALUES (1, 'First Post', 'This is my first post');
+VALUES (1, 'First Post', 'This is my first post.');
 ```
 ▶︎ postsテーブルにデータを追加する（INSERT および VALUES の構文はusersと同様）
   
 ```sql
 SELECT * FROM posts;
 ```
-▶︎ postsテーブルのデータを確認する（usersと同様）
+▶︎ postsテーブルのデータを確認する（usersと同様）  
+
+```sql
+ALTER TABLE users
+MODIFY name VARCHAR(50) NOT NULL,
+MODIFY email VARCHAR(255) NOT NULL UNIQUE,
+MODIFY created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+```
+- `ALTER TABLE users`  
+  既存のusersテーブルの構造を変更する  
+
+▶︎ usersテーブルの既存カラム（name、email、created_at）の定義を変更し、NOT NULL制約（値なしは禁止）およびUNIQUE制約（重複禁止）を追加する
+
+```sql
+ALTER TABLE posts
+MODIFY user_id INT NOT NULL,
+MODIFY title VARCHAR(100) NOT NULL,
+MODIFY created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+```
+▶︎ postsテーブルの既存カラムにNOT NULL制約を追加する（usersと同様）  
+▶︎ 不完全なデータ登録および重複データの発生を防止し、データの整合性を保つ  
+
+※ 既存データにNULLや重複がある場合、制約追加時にエラーとなるため事前確認が必要  
 
 ```sql
 ALTER TABLE posts
@@ -182,9 +207,6 @@ FOREIGN KEY (user_id)
 REFERENCES users(id)
 ON DELETE CASCADE;
 ```
-- `ALTER TABLE posts`  
-  既存のpostsテーブルの構造を変更する
-
 - `ADD CONSTRAINT <制約名>`  
   任意の名前で制約（ルール）を追加する
 
@@ -200,38 +222,10 @@ ON DELETE CASCADE;
   参照される側（親：users）のデータが削除された場合、そのユーザーに紐づくposts（子）のデータも自動で削除する
 
 ▶︎ 存在しないユーザーIDの投稿を作成できないようにする  
-▶︎ 親（users）データ削除後に、不整合な子（posts）データが残るのを防ぐ
-
-```sql
-ALTER TABLE users
-MODIFY name VARCHAR(50) NOT NULL,
-MODIFY email VARCHAR(255) NOT NULL UNIQUE,
-MODIFY created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
-```
-▶︎ usersテーブルの既存カラム（name、email、created_at）の定義を変更し、NOT NULL制約（値なしは禁止）およびUNIQUE制約（重複禁止）を追加する
-
-```sql
-ALTER TABLE posts
-MODIFY user_id INT NOT NULL,
-MODIFY title VARCHAR(100) NOT NULL,
-MODIFY created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
-```
-▶︎ postsテーブルの既存カラムにNOT NULL制約を追加する（usersと同様）  
-▶︎ 不完全なデータ登録および重複データの発生を防止し、データの整合性を保つ  
-
-※ 既存データにNULLや重複がある場合、制約追加時にエラーとなるため事前確認が必要  
+▶︎ 親（users）データ削除後に、不整合な子（posts）データが残るのを防ぐ  
 
 
-### 4. Get Data (JOIN)
-```sql
-SELECT users.name, posts.title
-FROM users
-JOIN posts ON users.id = posts.user_id;
-```
-▶︎ ユーザーと投稿のデータを結合し、ユーザー名と投稿タイトルを一覧として取得する
-
-
-### 5. Manage Database Access
+#### 3.3 Manage Database Access
 ```sql
 CREATE USER 'app_user'@'localhost' IDENTIFIED BY 'Password123!';
 ```
@@ -252,7 +246,7 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 ▶︎ GRANTで設定した内容が正しく反映されているか、および不要な権限が付与されていないかを確認する  
 
 
-### ?. Set Up and Run Simple PHP Application
+### 4. Set Up and Run Simple PHP Application
 - アプリケーション作成  
   /var/www/html 配下に index.php を作成し、投稿機能を持つ簡易的なPHPアプリケーションを実装する  
   ※ 実装コードの詳細は、本リポジトリ内の index.php を参照
@@ -321,8 +315,8 @@ SHOW GRANTS FOR 'app_user'@'localhost';
   ブラウザで http://IPアドレス にアクセスし、作成したPHPアプリケーションが表示されることを確認  
 
 
-### 6. Set Up AWS Infrastructure
-#### 6.1 Initialize AWS Environment
+### 5. Set Up AWS Foundation
+#### 5.1 Initialize AWS Environment
 - AWSアカウント作成
 - 多要素認証（MFA）有効化
 - リージョン設定
@@ -331,7 +325,8 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 ▶︎ MFAにより不正ログインを防止する  
 ▶︎ 東京リージョン（ap-northeast-1）を選択し、データ通信の遅延を低減する  
 
-#### 6.2 Configure IAM Users with Permissions
+
+#### 5.2 Configure IAM Users with Permissions
 - IAMユーザー作成
 - 権限付与
 - MFA有効化
@@ -339,7 +334,8 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 ▶︎ 日常操作用として管理用のIAMユーザーを作成し、初期構築のために一時的にAdministratorAccessを付与する  
 ▶︎ IAMユーザーにもMFAを設定し、セキュリティを強化する  
 
-#### 6.3 Set Up VPC and Networking
+
+### 6. Set Up VPC and Networking
 - VPC作成  
   AWS上に独立したネットワーク環境を構築する  
   ※ CIDRは10.0.0.0/16とし、サブネット分割や将来的な拡張に対応できる設計とする 
@@ -366,7 +362,9 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 
 ▶︎ VPCとネットワーク設定により、インターネットと通信可能なサーバー環境を構築する
 
-#### 6.4 Set Up EC2 Instance
+
+### 7. Set Up Amazon EC2 
+#### 7.1 Launch EC2 Instance
 - EC2インスタンス作成  
   AWS上に仮想サーバー（EC2）を起動する
 
@@ -382,7 +380,7 @@ SHOW GRANTS FOR 'app_user'@'localhost';
   ※ キーペアタイプは互換性の高いRSAを選択し、MacからSSH接続するため.pem形式を使用  
 
 - ネットワーク設定（VPC・サブネット選択）  
-  6.3で作成したVPCおよびサブネットにEC2を配置する
+  セクション6で作成したVPCおよびサブネットにEC2を配置する
 
 - セキュリティグループ作成  
   セキュリティグループルールでSSH（22番ポート）とHTTP（80番ポート）のみを許可する  
@@ -392,6 +390,8 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 - EC2インスタンス起動  
   設定内容をもとにインスタンスを作成し、サーバーを起動する  
 
+
+#### 7.2 Connect and Configure EC2 Instance
 - 秘密鍵（.pem）の権限変更
   ```bash
   chmod 400 web-server-key.pem
@@ -417,6 +417,55 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 - ブラウザからアクセス確認  
   パブリックIPアドレスにブラウザでアクセスし、Webページが表示されることを確認する  
 
+
+### 8. Set Up Amazon RDS
+▶︎ 開発・検証用途を前提とし、可用性よりもコスト効率を優先した最小構成とする  
+
+#### 8.1 Create RDS Instance
+- エンジンタイプ：MySQL
+- データベース作成方法：フル設定
+- テンプレート：開発/テスト
+- デプロイオプション：シングルAZ  
+
+
+#### 8.2 Configure RDS Instance Settings
+- エンジンバージョン：MySQL 8.0.45  
+  ▶︎ ローカル環境と同一バージョンを選択し、SQLの動作差異を防ぐ  
+
+- 認証情報管理：セルフマネージド
+- データベース認証オプション：パスワード認証
+- インスタンスタイプ：db.t3.micro（バースト可能クラス）
+- ストレージタイプ：汎用SSD（gp3）
+- ストレージ割り当て：20 GiB  
+
+
+#### 8.3 Configure Network Settings
+- VPC：EC2と同一VPC  
+  ▶︎ EC2と同一ネットワーク内に配置し、プライベート通信を可能にする  
+
+- DBサブネットグループ：自動セットアップ
+- パブリックアクセス：なし  
+  ▶︎ インターネットからの直接アクセスを防ぎ、セキュリティを確保する  
+
+- VPCセキュリティグループ（ファイアウォール）：新規作成  
+
+
+#### 8.4 Set Up EC2 Connection
+- コンピューティングリソース：EC2コンピューティングリソースに接続
+- EC2インスタンス：セクション7.1で作成したEC2インスタンスを選択  
+
+▶︎ EC2からRDSへ接続できるよう、対象のEC2インスタンスを関連付ける  
+
+
+#### 8.5 Verify RDS Connection
+- EC2にSSH接続
+- RDSに接続
+
+
+
+- データベース作成
+- PHP接続設定
+- 動作確認
 
 ## Summary
 本プロジェクトを通して、Linuxサーバーの基本操作、Webサーバー構築、データベース設計、およびAWSを用いたインフラ構築の基礎を学習した。
