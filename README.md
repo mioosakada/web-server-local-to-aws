@@ -1,7 +1,7 @@
-# Web Server: From Local to AWS Deployment
+# Web Infrastructure: Local to AWS Deployment
 
 ## Overview
-このプロジェクトは、ローカル環境でWebサーバーおよびデータベースを構築し、その環境をAWS上にデプロイする一連の流れを実装したものです。
+このプロジェクトでは、ローカル環境でNginx、MySQL、PHPを用いたWebアプリケーションを構築し、その構成をAWS（EC2・RDS）上にデプロイした。
 
 
 ## Development Environment
@@ -229,7 +229,7 @@ ON DELETE CASCADE;
 ```sql
 CREATE USER 'app_user'@'localhost' IDENTIFIED BY 'Password123!';
 ```
-▶︎ データベース接続用の専用ユーザー（app_user）とパスワードを作成し、rootではなく最小権限のユーザーで接続できるようにする  
+▶︎ アプリケーション接続用の専用ユーザー（app_user）とパスワードを作成し、rootではなく最小権限のユーザーで接続できるようにする  
 ▶︎ 接続元をlocalhostに制限し、外部からの不正アクセスを防止する
 
 ```sql
@@ -246,7 +246,7 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 ▶︎ GRANTで設定した内容が正しく反映されているか、および不要な権限が付与されていないかを確認する  
 
 
-### 4. Set Up and Run Simple PHP Application
+### 4. Set Up Simple PHP Application
 - アプリケーション作成  
   /var/www/html 配下に index.php を作成し、投稿機能を持つ簡易的なPHPアプリケーションを実装する  
   ※ 実装コードの詳細は、本リポジトリ内の index.php を参照
@@ -312,7 +312,7 @@ SHOW GRANTS FOR 'app_user'@'localhost';
   ▶︎ 設定ミスによる起動エラーを防ぎ、安全に設定変更を反映する  
 
 - 動作確認  
-  ブラウザで http://IPアドレス にアクセスし、作成したPHPアプリケーションが表示されることを確認  
+  ブラウザで http://IPアドレス にアクセスし、作成したPHPアプリケーションが表示されることを確認する  
 
 
 ### 5. Set Up AWS Foundation
@@ -412,7 +412,7 @@ SHOW GRANTS FOR 'app_user'@'localhost';
   
 - Webサーバー構築  
   EC2上にWebサーバー（Nginx）をインストールし、外部（ブラウザ）からアクセス可能な状態にする  
-  ※ ローカル環境（セクション1・2）と同様の手順をEC2上で実行する  
+  ※ ローカル環境（セクション1・2）と同様の手順をEC2内で実行する  
 
 - ブラウザからアクセス確認  
   パブリックIPアドレスにブラウザでアクセスし、Webページが表示されることを確認する  
@@ -439,7 +439,14 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 - ストレージ割り当て：20 GiB  
 
 
-#### 8.3 Configure Network Settings
+#### 8.3 Set Up EC2 Connection
+- コンピューティングリソース：EC2コンピューティングリソースに接続
+- EC2インスタンス：セクション7.1で作成したEC2インスタンスを選択  
+
+▶︎ EC2からRDSへ接続できるよう、対象のEC2インスタンスを関連付ける 
+
+
+#### 8.4 Configure Network Settings
 - VPC：EC2と同一VPC  
   ▶︎ EC2と同一ネットワーク内に配置し、プライベート通信を可能にする  
 
@@ -447,25 +454,36 @@ SHOW GRANTS FOR 'app_user'@'localhost';
 - パブリックアクセス：なし  
   ▶︎ インターネットからの直接アクセスを防ぎ、セキュリティを確保する  
 
-- VPCセキュリティグループ（ファイアウォール）：新規作成  
-
-
-#### 8.4 Set Up EC2 Connection
-- コンピューティングリソース：EC2コンピューティングリソースに接続
-- EC2インスタンス：セクション7.1で作成したEC2インスタンスを選択  
-
-▶︎ EC2からRDSへ接続できるよう、対象のEC2インスタンスを関連付ける  
+- VPCセキュリティグループ（ファイアウォール）：新規作成   
+  ※ ポート番号：3306、EC2のセキュリティグループからの接続のみ許可
 
 
 #### 8.5 Verify RDS Connection
-- EC2にSSH接続
-- RDSに接続
+- RDSに接続（EC2内で実行）
+  ```bash
+  mysql -h myapp-db.czeii22c6k17.ap-northeast-1.rds.amazonaws.com -u app_user -p
+  ```
+  ▶︎ `mysql -h <RDSエンドポイント> -u <ユーザー名> -p` を実行後、RDS作成時に設定したパスワードを入力する  
+  ▶︎ `mysql>` プロンプトが表示されれば接続成功
 
 
+#### 8.6 Set Up Database on RDS
+- データベース・テーブル作成  
+  ローカル環境（セクション3.2）と同様の手順で実行する
+  ※ NOT NULL制約や外部キー制約なども同様に設定する  
 
-- データベース作成
-- PHP接続設定
-- 動作確認
+- データベースアクセス管理  
+  ローカル環境（セクション3.3）と同様の手順を実行する  
+  ※ 接続元は`%`（任意のホストからの接続を許可）とするが、セキュリティグループによりEC2からの接続のみに制限している
+
+
+#### 8.7 Connect Application to RDS
+ローカル環境（セクション4）と同様の手順を実行する  
+※ index.php の`$host`はRDSのエンドポイントを指定する  
+
+動作確認：  
+ブラウザで http://EC2のパブリックIPアドレス にアクセスし、作成したPHPアプリケーションが表示されることを確認する  
+
 
 ## Summary
-本プロジェクトを通して、Linuxサーバーの基本操作、Webサーバー構築、データベース設計、およびAWSを用いたインフラ構築の基礎を学習した。
+本プロジェクトを通して、Linuxサーバーの基本操作、Webサーバー構築、データベース設計、およびAWSを用いたインフラ構築の基礎を理解した。これにより、基本的なWebインフラ構成を自力で構築できるようになった。
